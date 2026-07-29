@@ -3,8 +3,8 @@
 import {
   FileText,
   Pencil,
-  Trash2,
   StickyNote,
+  Trash2,
 } from "lucide-react";
 
 type Paper = {
@@ -12,13 +12,44 @@ type Paper = {
   title: string;
   pdfPath: string;
   note?: string;
+  createdAt: string;
 };
 
 type Props = {
   paper: Paper;
+  onDelete: () => void;
 };
 
-export default function PaperCard({ paper }: Props) {
+export default function PaperModal({
+  paper,
+  onDelete,
+}: Props) {
+  async function handleDelete() {
+    const confirmDelete = window.confirm(
+      "Delete this paper?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/papers/${paper.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error();
+      }
+
+      onDelete();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete paper.");
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
 
@@ -29,7 +60,7 @@ export default function PaperCard({ paper }: Props) {
           <div className="rounded-xl bg-violet-100 p-3">
             <FileText
               className="text-violet-700"
-              size={26}
+              size={28}
             />
           </div>
 
@@ -44,7 +75,10 @@ export default function PaperCard({ paper }: Props) {
             </a>
 
             <p className="mt-1 text-sm text-slate-500">
-              Research Paper
+              Uploaded on{" "}
+              {new Date(
+                paper.createdAt
+              ).toLocaleDateString()}
             </p>
 
           </div>
@@ -52,6 +86,7 @@ export default function PaperCard({ paper }: Props) {
         </div>
 
         <button
+          onClick={handleDelete}
           className="rounded-lg p-2 text-red-500 transition hover:bg-red-100"
         >
           <Trash2 size={20} />
@@ -82,7 +117,7 @@ export default function PaperCard({ paper }: Props) {
             </p>
 
             <button
-              className="mt-4 flex items-center gap-2 rounded-lg bg-violet-100 px-4 py-2 text-violet-700 transition hover:bg-violet-200"
+              className="mt-4 flex items-center gap-2 rounded-lg bg-violet-100 px-4 py-2 text-violet-700 hover:bg-violet-200"
             >
               <Pencil size={16} />
               Edit Note
@@ -90,9 +125,7 @@ export default function PaperCard({ paper }: Props) {
 
           </div>
         ) : (
-          <button
-            className="rounded-lg border border-dashed border-violet-300 px-4 py-3 text-violet-600 transition hover:bg-violet-50"
-          >
+          <button className="rounded-lg border border-dashed border-violet-300 px-4 py-3 text-violet-600 hover:bg-violet-50">
             + Add Note
           </button>
         )}

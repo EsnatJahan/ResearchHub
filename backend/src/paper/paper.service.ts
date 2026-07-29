@@ -1,8 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service';
 
 import { CreatePaperDto } from './dto/create-paper.dto';
 import { UpdatePaperDto } from './dto/update-paper.dto';
+
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class PaperService {
@@ -50,6 +57,25 @@ export class PaperService {
   }
 
   async remove(id: number) {
+    const paper = await this.prisma.paper.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!paper) {
+      throw new NotFoundException('Paper not found');
+    }
+
+    const filePath = path.join(
+      process.cwd(),
+      paper.pdfPath.replace(/^\//, ''),
+    );
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
     return this.prisma.paper.delete({
       where: {
         id,

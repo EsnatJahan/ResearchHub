@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UploadedFile,
@@ -11,13 +12,10 @@ import {
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
-
 import { diskStorage } from 'multer';
-
 import { extname } from 'path';
 
 import { PaperService } from './paper.service';
-
 import { CreatePaperDto } from './dto/create-paper.dto';
 import { UpdatePaperDto } from './dto/update-paper.dto';
 
@@ -30,26 +28,26 @@ export class PaperController {
     FileInterceptor('pdf', {
       storage: diskStorage({
         destination: './uploads/papers',
-
         filename: (req, file, cb) => {
-          const unique =
+          const uniqueName =
             Date.now() +
             '-' +
-            Math.round(Math.random() * 1000000);
+            Math.round(Math.random() * 1e9) +
+            extname(file.originalname);
 
-          cb(
-            null,
-            unique + extname(file.originalname),
-          );
+          cb(null, uniqueName);
         },
       }),
     }),
   )
   create(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: CreatePaperDto,
+    @Body() createPaperDto: CreatePaperDto,
   ) {
-    return this.paperService.create(body, file.filename);
+    return this.paperService.create(
+      createPaperDto,
+      file.filename,
+    );
   }
 
   @Get()
@@ -58,20 +56,27 @@ export class PaperController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paperService.findOne(+id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.paperService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
-    @Body() dto: UpdatePaperDto,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePaperDto: UpdatePaperDto,
   ) {
-    return this.paperService.update(+id, dto);
+    return this.paperService.update(
+      id,
+      updatePaperDto,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paperService.remove(+id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.paperService.remove(id);
   }
 }
