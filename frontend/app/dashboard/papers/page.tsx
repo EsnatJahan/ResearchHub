@@ -111,6 +111,7 @@ export default function PapersPage() {
               key={paper.id}
               paper={paper}
               onDelete={fetchPapers}
+              onUpdate={fetchPapers}
             />
           ))}
 

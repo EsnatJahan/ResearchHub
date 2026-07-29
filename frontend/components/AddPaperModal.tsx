@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Upload, FileText, X } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   open: boolean;
@@ -23,12 +24,12 @@ export default function AddPaperModal({
 
   async function handleUpload() {
     if (!title.trim()) {
-      alert("Please enter paper title.");
+      toast.error("Please enter paper title.");
       return;
     }
 
     if (!pdfFile) {
-      alert("Please choose a PDF.");
+      toast.error("Please choose a PDF.");
       return;
     }
 
@@ -39,7 +40,10 @@ export default function AddPaperModal({
 
       formData.append("title", title);
       formData.append("note", note);
-      formData.append("pdf", pdfFile);
+
+      if (pdfFile) {
+        formData.append("pdf", pdfFile);
+      }
 
       const res = await fetch("http://localhost:3001/papers", {
         method: "POST",
@@ -50,14 +54,18 @@ export default function AddPaperModal({
         throw new Error();
       }
 
+      toast.success("Paper uploaded successfully!");
+
       setTitle("");
       setNote("");
       setPdfFile(null);
 
       onSuccess();
       onClose();
-    } catch {
-      alert("Upload failed.");
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Upload failed.");
     } finally {
       setLoading(false);
     }
