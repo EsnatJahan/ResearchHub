@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+
 import { CreatePaperDto } from './dto/create-paper.dto';
 import { UpdatePaperDto } from './dto/update-paper.dto';
 
@@ -7,9 +8,16 @@ import { UpdatePaperDto } from './dto/update-paper.dto';
 export class PaperService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPaperDto: CreatePaperDto) {
+  async create(
+    createPaperDto: CreatePaperDto,
+    filename: string,
+  ) {
     return this.prisma.paper.create({
-      data: createPaperDto,
+      data: {
+        title: createPaperDto.title,
+        note: createPaperDto.note,
+        pdfPath: `/uploads/papers/${filename}`,
+      },
     });
   }
 
@@ -23,20 +31,29 @@ export class PaperService {
 
   async findOne(id: number) {
     return this.prisma.paper.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
     });
   }
 
-  async update(id: number, updatePaperDto: UpdatePaperDto) {
+  async update(
+    id: number,
+    updatePaperDto: UpdatePaperDto,
+  ) {
     return this.prisma.paper.update({
-      where: { id },
+      where: {
+        id,
+      },
       data: updatePaperDto,
     });
   }
 
   async remove(id: number) {
     return this.prisma.paper.delete({
-      where: { id },
+      where: {
+        id,
+      },
     });
   }
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import PaperCard from "@/components/papercard";
+import { useEffect, useState } from "react";
+
+import PaperCard from "@/components/PaperModal";
+import AddPaperModal from "@/components/AddPaperModal";
 
 type Paper = {
   id: number;
@@ -12,112 +14,97 @@ type Paper = {
 
 export default function PapersPage() {
   const [papers, setPapers] = useState<Paper[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const [title, setTitle] = useState("");
-  const [pdfPath, setPdfPath] = useState("");
-  const [note, setNote] = useState("");
-
-  const [showForm, setShowForm] = useState(false);
-
-  async function handleAddPaper() {
+  async function fetchPapers() {
     try {
-      const res = await fetch("http://localhost:3001/papers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          pdfPath,
-          note,
-        }),
-      });
+      const res = await fetch("http://localhost:3001/papers");
 
-      if (!res.ok) {
-        throw new Error("Failed to add paper");
-      }
+      const data = await res.json();
 
-      const newPaper: Paper = await res.json();
+      console.log(JSON.stringify(data, null, 2));
 
-      setPapers((prev) => [...prev, newPaper]);
-
-      setTitle("");
-      setPdfPath("");
-      setNote("");
-
-      setShowForm(false);
+      setPapers(data);
     } catch (err) {
       console.error(err);
-      alert("Failed to add paper.");
+    } finally {
+      setLoading(false);
     }
   }
 
+  useEffect(() => {
+    fetchPapers();
+  }, []);
+
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between">
-        <h1
-        className="text-3xl font-bold cursor-pointer"
-        onClick={() => alert("Heading clicked")}
-      >
-        Papers
-      </h1>
+
+      <div className="mb-8 flex items-center justify-between">
+
+        <div>
+
+          <h1 className="text-3xl font-bold">
+            Research Papers
+          </h1>
+
+          <p className="mt-2 text-slate-500">
+            Manage your research paper collection.
+          </p>
+
+        </div>
+
         <button
-          onClick={() => setShowForm(true)}
-          className="rounded-lg bg-violet-600 px-5 py-2 text-white hover:bg-violet-700"
+          onClick={() => setShowModal(true)}
+          className="rounded-xl bg-violet-600 px-5 py-3 font-medium text-white transition hover:bg-violet-700"
         >
           + Add Paper
         </button>
+
       </div>
 
-      {showForm && (
-        <div className="mt-6 rounded-xl border bg-white p-6 shadow">
-          <div className="space-y-4">
-            <input
-              className="w-full rounded border p-2"
-              placeholder="Paper Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+      <AddPaperModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSuccess={fetchPapers}
+      />
+
+      {loading ? (
+        <div className="rounded-xl bg-white p-10 text-center shadow">
+          Loading papers...
+        </div>
+      ) : papers.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-16 text-center">
+
+          <h2 className="text-xl font-semibold">
+            No Papers Yet
+          </h2>
+
+          <p className="mt-2 text-slate-500">
+            Upload your first research paper.
+          </p>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-6 rounded-xl bg-violet-600 px-5 py-3 text-white hover:bg-violet-700"
+          >
+            Upload Paper
+          </button>
+
+        </div>
+      ) : (
+        <div className="grid gap-6">
+
+          {papers.map((paper) => (
+            <PaperCard
+              key={paper.id}
+              paper={paper}
             />
+          ))}
 
-            <input
-              className="w-full rounded border p-2"
-              placeholder="PDF Path"
-              value={pdfPath}
-              onChange={(e) => setPdfPath(e.target.value)}
-            />
-
-            <textarea
-              className="w-full rounded border p-2"
-              placeholder="Note"
-              rows={4}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleAddPaper}
-                className="rounded-lg bg-green-600 px-4 py-2 text-white"
-              >
-                Save
-              </button>
-
-              <button
-                onClick={() => setShowForm(false)}
-                className="rounded-lg bg-gray-400 px-4 py-2 text-white"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
-      <div className="mt-6 space-y-4">
-        {papers.map((paper) => (
-          <PaperCard key={paper.id} paper={paper} />
-        ))}
-      </div>
     </div>
   );
 }

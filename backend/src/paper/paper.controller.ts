@@ -6,8 +6,18 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+
+import { diskStorage } from 'multer';
+
+import { extname } from 'path';
+
 import { PaperService } from './paper.service';
+
 import { CreatePaperDto } from './dto/create-paper.dto';
 import { UpdatePaperDto } from './dto/update-paper.dto';
 
@@ -16,8 +26,30 @@ export class PaperController {
   constructor(private readonly paperService: PaperService) {}
 
   @Post()
-  create(@Body() createPaperDto: CreatePaperDto) {
-    return this.paperService.create(createPaperDto);
+  @UseInterceptors(
+    FileInterceptor('pdf', {
+      storage: diskStorage({
+        destination: './uploads/papers',
+
+        filename: (req, file, cb) => {
+          const unique =
+            Date.now() +
+            '-' +
+            Math.round(Math.random() * 1000000);
+
+          cb(
+            null,
+            unique + extname(file.originalname),
+          );
+        },
+      }),
+    }),
+  )
+  create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: CreatePaperDto,
+  ) {
+    return this.paperService.create(body, file.filename);
   }
 
   @Get()
@@ -27,19 +59,19 @@ export class PaperController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.paperService.findOne(Number(id));
+    return this.paperService.findOne(+id);
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updatePaperDto: UpdatePaperDto,
+    @Body() dto: UpdatePaperDto,
   ) {
-    return this.paperService.update(Number(id), updatePaperDto);
+    return this.paperService.update(+id, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.paperService.remove(Number(id));
+    return this.paperService.remove(+id);
   }
 }
