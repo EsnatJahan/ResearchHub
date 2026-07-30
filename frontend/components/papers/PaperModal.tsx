@@ -32,6 +32,8 @@ export default function PaperModal({
   onUpdate,
 }: Props) {
   const [editing, setEditing] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [title, setTitle] = useState(paper.title);
   const [note, setNote] = useState(paper.note || "");
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -95,40 +97,75 @@ export default function PaperModal({
     }
   }
 
-  async function removeNote() {
-  try {
-    setLoading(true);
+  async function saveTitle() {
+    try {
+      setLoading(true);
 
-    const res = await fetch(
-      `http://localhost:3001/papers/${paper.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          note: "",
-        }),
+      const res = await fetch(
+        `http://localhost:3001/papers/${paper.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error();
       }
-    );
 
-    if (!res.ok) {
-      throw new Error();
+      toast.success("Paper renamed successfully!");
+
+      setEditingTitle(false);
+
+      onUpdate();
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to rename paper.");
+    } finally {
+      setLoading(false);
     }
-
-    setNote("");
-
-    toast.success("Note removed successfully!");
-
-    onUpdate();
-
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to remove note.");
-  } finally {
-    setLoading(false);
   }
-}
+
+  async function removeNote() {
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `http://localhost:3001/papers/${paper.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            note: "",
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error();
+      }
+
+      setNote("");
+
+      toast.success("Note removed successfully!");
+
+      onUpdate();
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to remove note.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -146,14 +183,53 @@ export default function PaperModal({
 
           <div>
 
-            <a
-              href={`http://localhost:3001${paper.pdfPath}`}
-              target="_blank"
-              className="text-lg font-semibold text-violet-700 hover:underline"
-            >
-              {paper.title}
-            </a>
+            {editingTitle ? (
+              <div className="flex items-center gap-2">
 
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="rounded-lg border px-3 py-1"
+                />
+
+                <button
+                  onClick={saveTitle}
+                  className="rounded bg-green-600 px-3 py-1 text-white"
+                >
+                  Save
+                </button>
+
+                <button
+                  onClick={() => {
+                    setEditingTitle(false);
+                    setTitle(paper.title);
+                  }}
+                  className="rounded bg-gray-300 px-3 py-1"
+                >
+                  Cancel
+                </button>
+
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+
+                <a
+                  href={`http://localhost:3001${paper.pdfPath}`}
+                  target="_blank"
+                  className="text-lg font-semibold text-violet-700 hover:underline"
+                >
+                  {paper.title}
+                </a>
+
+                <button
+                  onClick={() => setEditingTitle(true)}
+                  className="text-slate-500 hover:text-violet-700"
+                >
+                  <Pencil size={16} />
+                </button>
+
+              </div>
+            )}
             <p className="mt-1 text-sm text-slate-500">
               {new Date(
                 paper.createdAt
