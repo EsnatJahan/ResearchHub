@@ -1,137 +1,96 @@
-import ProjectCard from "@/components/projectcard";
+"use client";
 
+import { useEffect, useState } from "react";
+import ProjectTitle from "@/components/projects/ProjectTitle";
+import AddProjectModal from "@/components/projects/AddProjectModal";
 
-const projects = [
-  {
-    id:1,
-    title:"LLM-based Automated Test Generation",
-    description:
-      "Generate Python unit tests using lightweight open-weight LLMs.",
-    status:"Active",
-    papers:12,
-    datasets:3,
-    models:5,
-    experiments:15,
-    progress:75,
-    created:"January 2026"
-  },
+type Project = {
+  id: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+};
 
-  {
-    id:2,
-    title:"IoT Anomaly Detection",
-    description:
-      "Detect abnormal behavior in IoT network traffic.",
-    status:"Completed",
-    papers:8,
-    datasets:2,
-    models:3,
-    experiments:10,
-    progress:100,
-    created:"March 2025"
-  },
-
-  {
-    id:3,
-    title:"Medical Image Classification",
-    description:
-      "Deep learning based disease classification system.",
-    status:"Research",
-    papers:6,
-    datasets:1,
-    models:4,
-    experiments:7,
-    progress:45,
-    created:"May 2025"
+export default function ProjectsPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  async function fetchProjects() {
+    try {
+      const res = await fetch("http://localhost:3001/projects");
+      const data = await res.json();
+      setProjects(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
-]
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
+  return (
+    <div className="p-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">
+            Projects
+          </h1>
 
-export default function ProjectsPage(){
+          <p className="mt-2 text-slate-500">
+            Manage your research projects.
+          </p>
+        </div>
 
-return (
+        <button
+          onClick={() => setShowModal(true)}
+          className="rounded-xl bg-violet-600 px-5 py-3 font-medium text-white transition hover:bg-violet-700"
+        >
+          + New Project
+        </button>
+      </div>
 
-<div className="p-8">
+      <AddProjectModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSuccess={fetchProjects}
+      />
 
+      {loading ? (
+        <div className="rounded-xl bg-white p-10 text-center shadow">
+          Loading...
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-16 text-center">
 
-<div className="
-flex 
-justify-between
-items-center
-">
+          <h2 className="text-xl font-semibold">
+            No Projects Yet
+          </h2>
 
-<div>
+          <p className="mt-2 text-slate-500">
+            Create your first research project.
+          </p>
 
-<h1 className="text-3xl font-bold">
-Projects
-</h1>
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-6 rounded-xl bg-violet-600 px-5 py-3 text-white hover:bg-violet-700"
+          >
+            Create Project
+          </button>
 
-<p className="text-gray-500 mt-1">
-Manage all your research projects
-</p>
-
-</div>
-
-
-<button
-className="
-bg-blue-600
-text-white
-px-5
-py-2
-rounded-lg
-"
->
-+ New Project
-</button>
-
-
-</div>
-
-
-
-<input
-
-placeholder="Search projects..."
-
-className="
-mt-8
-w-full
-border
-rounded-lg
-p-3
-outline-none
-"
-
-/>
-
-
-
-<div className="
-grid
-grid-cols-1
-lg:grid-cols-2
-gap-6
-mt-8
-">
-
-
-{
-projects.map((project)=>(
-<ProjectCard
-key={project.id}
-project={project}
-/>
-))
-}
-
-
-</div>
-
-
-
-</div>
-
-)
-
+        </div>
+      ) : (
+        <div className="grid gap-6">
+           {projects.map((project) => (
+              <ProjectTitle
+                key={project.id}
+                project={project}
+              />
+            ))}
+        </div>
+      )}
+    </div>
+  );
 }

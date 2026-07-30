@@ -1,5 +1,5 @@
 
-export default function ProjectCard({
+export default function Project({
 name,
 progress,
 papers,

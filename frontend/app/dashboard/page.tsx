@@ -1,5 +1,5 @@
 import StatCard from "@/components/statcard";
-import ProjectCard from "@/components/project";
+import Project from "@/components/project";
 export default function Dashboard(){
 
   return (
@@ -50,7 +50,7 @@ export default function Dashboard(){
 
       <div className="grid grid-cols-2 gap-5 mt-4">
 
-        <ProjectCard
+        <Project
           name="LLM Test Generation"
           progress="70"
           papers="12"
@@ -58,7 +58,7 @@ export default function Dashboard(){
         />
 
 
-        <ProjectCard
+        <Project
           name="IoT Anomaly Detection"
           progress="40"
           papers="5"
