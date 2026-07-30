@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {toast } from "sonner";
-import ConfirmModal from "./ConfirmModal";
+import ConfirmModal from "../ConfirmModal";
 import {
   FileText,
   Pencil,

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import PaperModal from "@/components/PaperModal";
-import AddPaperModal from "@/components/AddPaperModal";
+import PaperModal from "@/components/papers/PaperModal";
+import AddPaperModal from "@/components/papers/AddPaperModal";
 
 type Paper = {
   id: number;
