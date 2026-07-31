@@ -79,7 +79,7 @@ export default async function ProjectOverview({
             </p>
 
             <p className="mt-2 text-3xl font-bold">
-              0
+              {project.papers?.length || 0}
             </p>
           </div>
 

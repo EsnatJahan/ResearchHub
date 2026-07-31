@@ -1,13 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
   ParseIntPipe,
+  Patch,
+  Post,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 import { ProjectsService } from './projects.service';
 
@@ -57,5 +63,62 @@ export class ProjectsController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.projectsService.remove(id);
+  }
+
+  // Remove paper ONLY from this project
+  @Delete(':projectId/papers/:paperId')
+  removePaper(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('paperId', ParseIntPipe) paperId: number,
+  ) {
+    return this.projectsService.removePaper(
+      projectId,
+      paperId,
+    );
+  }
+
+  // Add an existing paper to this project
+  @Post(':projectId/papers/:paperId')
+  addPaper(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('paperId', ParseIntPipe) paperId: number,
+  ) {
+    return this.projectsService.addPaper(
+      projectId,
+      paperId,
+    );
+  }
+
+  // Create a new paper AND add it to this project
+  @Post(':projectId/papers')
+  @UseInterceptors(
+    FileInterceptor('pdf', {
+      storage: diskStorage({
+        destination: './uploads/papers',
+        filename: (req, file, cb) => {
+          const uniqueName =
+            Date.now() +
+            '-' +
+            Math.round(Math.random() * 1e9) +
+            extname(file.originalname);
+
+          cb(null, uniqueName);
+        },
+      }),
+    }),
+  )
+  createPaperForProject(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+  ) {
+    return this.projectsService.createPaperForProject(
+      projectId,
+      {
+        title: body.title,
+        note: body.note,
+      },
+      file.filename,
+    );
   }
 }

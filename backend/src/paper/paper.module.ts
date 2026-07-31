@@ -4,6 +4,7 @@ import { PaperController } from './paper.controller';
 
 @Module({
   providers: [PaperService],
-  controllers: [PaperController]
+  controllers: [PaperController],
+  exports: [PaperService],
 })
 export class PaperModule {}

@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 
-import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
+import { ProjectsController } from './projects.controller';
 
-import { PrismaModule } from '../prisma/prisma.module';
+import { PaperModule } from '../paper/paper.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PaperModule],
   controllers: [ProjectsController],
   providers: [ProjectsService],
 })
