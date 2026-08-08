@@ -15,25 +15,56 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  async function fetchProjects() {
-    try {
-      const res = await fetch("http://localhost:3001/projects");
-      const data = await res.json();
-      setProjects(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+
+ async function fetchProjects() {
+  try {
+    const res = await fetch(
+      "http://localhost:3001/projects",
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    console.log("Projects API response:", data);
+
+    if (!res.ok) {
+      console.error(
+        "Failed to fetch projects:",
+        data
+      );
+
+      setProjects([]);
+      return;
     }
+
+    setProjects(
+      Array.isArray(data) ? data : []
+    );
+
+  } catch (err) {
+    console.error(
+      "Error fetching projects:",
+      err
+    );
+
+    setProjects([]);
+  } finally {
+    setLoading(false);
   }
+}
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
   return (
-    <div className="p-8">
+    <div className="p-6">
+
+      {/* ================= Header ================= */}
       <div className="mb-8 flex items-center justify-between">
+
         <div>
           <h1 className="text-3xl font-bold">
             Projects
@@ -50,13 +81,18 @@ export default function ProjectsPage() {
         >
           + New Project
         </button>
+
       </div>
+
+      {/* ================= Add Project Modal ================= */}
 
       <AddProjectModal
         open={showModal}
         onClose={() => setShowModal(false)}
         onSuccess={fetchProjects}
       />
+
+      {/* ================= Projects ================= */}
 
       {loading ? (
         <div className="rounded-xl bg-white p-10 text-center shadow">
@@ -75,7 +111,7 @@ export default function ProjectsPage() {
 
           <button
             onClick={() => setShowModal(true)}
-            className="mt-6 rounded-xl bg-violet-600 px-5 py-3 text-white hover:bg-violet-700"
+            className="mt-6 rounded-xl bg-violet-600 px-5 py-3 text-white transition hover:bg-violet-700"
           >
             Create Project
           </button>
@@ -83,14 +119,17 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="grid gap-6">
-           {projects.map((project) => (
-              <ProjectTitle
-                key={project.id}
-                project={project}
-              />
-            ))}
+
+          {projects.map((project) => (
+            <ProjectTitle
+              key={project.id}
+              project={project}
+            />
+          ))}
+
         </div>
       )}
+
     </div>
   );
 }

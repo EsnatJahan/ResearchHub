@@ -1,7 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+
 import { CreatePaperDto } from '../paper/dto/create-paper.dto';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { PaperService } from '../paper/paper.service';
 
@@ -12,36 +19,152 @@ export class ProjectsService {
     private paperService: PaperService,
   ) {}
 
-  create(createProjectDto: CreateProjectDto) {
+  // =========================
+  // Create project
+  // =========================
+
+  create(
+    createProjectDto: CreateProjectDto,
+    userId: number,
+  ) {
     return this.prisma.project.create({
-      data: createProjectDto,
+      data: {
+        ...createProjectDto,
+        userId,
+      },
     });
   }
 
-  findAll() {
+  // =========================
+  // Get user's projects
+  // =========================
+
+  findAll(userId: number) {
     return this.prisma.project.findMany({
+      where: {
+        userId,
+      },
       orderBy: {
         createdAt: 'desc',
       },
     });
   }
 
-  findOne(id: number) {
-    return this.prisma.project.findUnique({
+  // =========================
+  // Get one project
+  // =========================
+
+  async findOne(
+    id: number,
+    userId: number,
+  ) {
+    const project =
+      await this.prisma.project.findFirst({
+        where: {
+          id,
+          userId,
+        },
+        include: {
+          papers: {
+            include: {
+              paper: true,
+            },
+          },
+        },
+      });
+
+    if (!project) {
+      throw new NotFoundException(
+        'Project not found',
+      );
+    }
+
+    return project;
+  }
+
+  // =========================
+  // Update project
+  // =========================
+
+  async update(
+    id: number,
+    updateProjectDto: UpdateProjectDto,
+    userId: number,
+  ) {
+    const project =
+      await this.prisma.project.findFirst({
+        where: {
+          id,
+          userId,
+        },
+      });
+
+    if (!project) {
+      throw new NotFoundException(
+        'Project not found',
+      );
+    }
+
+    return this.prisma.project.update({
       where: {
         id,
       },
-      include: {
-        papers: {
-          include: {
-            paper: true,
-          },
+      data: updateProjectDto,
+    });
+  }
+
+  // =========================
+  // Delete project
+  // =========================
+
+  async remove(
+    id: number,
+    userId: number,
+  ) {
+    const project =
+      await this.prisma.project.findFirst({
+        where: {
+          id,
+          userId,
         },
+      });
+
+    if (!project) {
+      throw new NotFoundException(
+        'Project not found',
+      );
+    }
+
+    return this.prisma.project.delete({
+      where: {
+        id,
       },
     });
   }
 
-  async addPaper(projectId: number, paperId: number) {
+  // =========================
+  // Add existing paper
+  // =========================
+
+  async addPaper(
+    projectId: number,
+    paperId: number,
+    userId: number,
+  ) {
+    const project =
+      await this.prisma.project.findFirst({
+        where: {
+          id: projectId,
+          userId,
+        },
+      });
+
+    if (!project) {
+      throw new NotFoundException(
+        'Project not found',
+      );
+    }
+
     return this.prisma.projectPaper.create({
       data: {
         projectId,
@@ -50,10 +173,29 @@ export class ProjectsService {
     });
   }
 
+  // =========================
+  // Remove paper
+  // =========================
+
   async removePaper(
     projectId: number,
     paperId: number,
+    userId: number,
   ) {
+    const project =
+      await this.prisma.project.findFirst({
+        where: {
+          id: projectId,
+          userId,
+        },
+      });
+
+    if (!project) {
+      throw new NotFoundException(
+        'Project not found',
+      );
+    }
+
     return this.prisma.projectPaper.delete({
       where: {
         projectId_paperId: {
@@ -64,15 +206,35 @@ export class ProjectsService {
     });
   }
 
+  // =========================
+  // Create paper for project
+  // =========================
+
   async createPaperForProject(
     projectId: number,
     createPaperDto: CreatePaperDto,
     filename: string,
+    userId: number,
   ) {
-    const paper = await this.paperService.create(
-      createPaperDto,
-      filename,
-    );
+    const project =
+      await this.prisma.project.findFirst({
+        where: {
+          id: projectId,
+          userId,
+        },
+      });
+
+    if (!project) {
+      throw new NotFoundException(
+        'Project not found',
+      );
+    }
+
+    const paper =
+      await this.paperService.create(
+        createPaperDto,
+        filename,
+      );
 
     await this.prisma.projectPaper.create({
       data: {
@@ -82,22 +244,5 @@ export class ProjectsService {
     });
 
     return paper;
-  }
-
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return this.prisma.project.update({
-      where: {
-        id,
-      },
-      data: updateProjectDto,
-    });
-  }
-
-  remove(id: number) {
-    return this.prisma.project.delete({
-      where: {
-        id,
-      },
-    });
   }
 }

@@ -7,6 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects  Project[]
+}
+
 model Paper {
   id        Int      @id @default(autoincrement())
   title     String
@@ -25,6 +36,9 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  userId      Int?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   papers      ProjectPaper[]
 }
 
@@ -36,4 +50,14 @@ model ProjectPaper {
   paper   Paper   @relation(fields: [paperId], references: [id], onDelete: Cascade)
 
   @@id([projectId, paperId])
+}
+
+model Dataset {
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?
+  filePath     String
+  originalName String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

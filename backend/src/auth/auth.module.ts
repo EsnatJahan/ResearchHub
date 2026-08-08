@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
-import { ProjectsController } from './projects.controller';
-import { ProjectsService } from './projects.service';
-
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
 import { PrismaService } from '../prisma/prisma.service';
-import { PaperService } from '../paper/paper.service';
+import { JwtGuard } from './jwt.guard';
 
 @Module({
   imports: [
@@ -17,14 +16,18 @@ import { PaperService } from '../paper/paper.service';
     }),
   ],
 
-  controllers: [
-    ProjectsController,
-  ],
+  controllers: [AuthController],
 
   providers: [
-    ProjectsService,
+    AuthService,
     PrismaService,
-    PaperService,
+    JwtGuard,
+  ],
+
+  exports: [
+    AuthService,
+    JwtModule,
+    JwtGuard,
   ],
 })
-export class ProjectsModule {}
+export class AuthModule {}
