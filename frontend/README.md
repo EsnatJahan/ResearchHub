@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ResearchHub Frontend 💻
 
-## Getting Started
+Modern scientific research workspace interface built with **Next.js 16 (App Router)**, **React 19**, **TypeScript 5**, and **Tailwind CSS v4**.
 
-First, run the development server:
+---
 
+## 🛠 Features
+
+- **App Router Architecture**: Dynamic routing for dashboard modules (`/dashboard/projects`, `/dashboard/papers`, `/dashboard/datasets`).
+- **Route Guarding**: Next.js Edge `middleware.ts` protecting dashboard routes using JWT cookies.
+- **In-Browser Dataset Viewer**:
+  - **CSV & TSV**: Fast tabular preview with filtering and pagination via `PapaParse`.
+  - **Excel (`.xlsx`, `.xls`)**: Multi-sheet parser and viewer via `SheetJS (XLSX)`.
+  - **Word (`.docx`)**: Clean HTML rendering via `Mammoth`.
+  - **JSON**: Interactive JSON tree viewer.
+- **Paper & Project Modals**: Interactive modals for uploading papers, attaching notes, and managing project resources.
+- **Toast Notifications**: Built-in notification feedback via `Sonner`.
+
+---
+
+## 🚀 Setup & Installation
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Run the Development Server
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📁 Key Routes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/` — Landing page
+- `/login` — User login
+- `/register` — Account registration
+- `/dashboard` — Researcher dashboard overview
+- `/dashboard/projects` — Research projects list & project workspace
+- `/dashboard/papers` — Research papers repository & modal reader
+- `/dashboard/datasets` — Dataset management & multi-format data viewer
